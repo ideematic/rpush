@@ -53,11 +53,10 @@ $ bundle exec rpush init
 
 #### Apple Push Notification Service
 
-There is a choice of two modes (and one legacy mode) using certificates or using tokens:
+There is a choice of two modes, using certificates or using tokens:
 
 * `Rpush::Apns2` This requires an annually renewable certificate. see https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/establishing_a_certificate-based_connection_to_apns
 * `Rpush::Apnsp8` This uses encrypted tokens and requires an encryption key id and encryption key (provide as a p8 file). (see https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/establishing_a_token-based_connection_to_apns)
-  Apple have [announced](https://developer.apple.com/news/?id=c88acm2b) that this is not supported after March 31, 2021.
 
 If this is your first time using the APNs, you will need to generate either SSL certificates (for standard Apns) or an Encryption Key (p8) and an Encryption Key ID (for Apnsp8). See [Generating Certificates](https://github.com/rpush/rpush/wiki/Generating-Certificates) for instructions.
 
@@ -128,7 +127,7 @@ The app `environment` for any Apns* option is "development" for XCode installs, 
 #### Firebase Cloud Messaging
 
 You will need two params to make use of FCM via Rpush.
-- `firebase_project_id` - The `Project ID` in your Firebase Project Settings
+- `firebase_project_id` - The `Project number` in your Firebase Project Settings
 - `json_key` - The JSON key file for a service account with the `Firebase Admin SDK Administrator Service Agent` role.
 
 Create service account in the google cloud account attached to your firebase account:
@@ -151,6 +150,7 @@ fcm_app.save!
 n = Rpush::Fcm::Notification.new
 n.app = Rpush::Fcm::App.where(name: "fcm_app").first
 n.device_token = device_token # Note that device_token is used here instead of registration_ids
+n.notification = { title: "push title", body: "hi mom!" } # either title or body needs to be set, or nothing goes through
 n.data = {}.transform_values(&:to_s) # All values going in here have to be strings, if you have anything else - nothing goes through
 n.save!
 ```
@@ -298,10 +298,10 @@ according to the spec, can be used by push service providers to contact you in
 case of problems) in the `certificates` field of the Rpush Application record:
 
 ```ruby
-vapid_keypair = Webpush.generate_key.to_hash
+vapid_keypair = WebPush.generate_key.to_hash
 app = Rpush::Webpush::App.new
 app.name = 'webpush'
-app.certificate = vapid_keypair.merge(subject: 'user@example.org').to_json
+app.certificate = vapid_keypair.merge(subject: 'mailto:user@example.org').to_json
 app.connections = 1
 app.save!
 ```
@@ -322,6 +322,7 @@ In order to send the same message to multiple devices, create one
 `Notification` per device, as passing multiple subscriptions at once as
 `registration_ids` is not supported.
 
+For more information on Web Push, see the [pushpad/web-push](https://github.com/pushpad/web-push) documentation.
 
 ### Running Rpush
 
